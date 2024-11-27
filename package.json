@@ -7,9 +7,15 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "build-mobile": "npm run generate && npx cap copy"
   },
   "dependencies": {
+    "@capacitor-community/media": "^7.0.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/ios": "^6.2.0",
     "nuxt": "^3.14.1592",
     "vue": "latest",
     "vue-router": "latest"

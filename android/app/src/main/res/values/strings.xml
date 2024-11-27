@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TuneTailor</string>
+    <string name="title_activity_main">TuneTailor</string>
+    <string name="package_name">com.example.tunetailor</string>
+    <string name="custom_url_scheme">com.example.tunetailor</string>
+</resources>
