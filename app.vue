@@ -3,12 +3,13 @@
     <!-- Title -->
     <h1 class="text-4xl font-bold text-blue-700 mb-8">TuneTailor</h1>
 
-    <!-- Big Button -->
+    <!-- Dynamic Button -->
     <button
       class="w-24 h-24 bg-blue-500 rounded-full text-white text-4xl flex items-center justify-center shadow-lg hover:bg-blue-600 focus:outline-none"
       @click="handleButtonClick"
     >
-      ▶
+      <span v-if="!isRecording">▶</span>
+      <span v-else>■</span>
     </button>
 
     <!-- Three Columns Section -->
@@ -42,15 +43,71 @@
 
 <script>
 export default {
+  data() {
+    return {
+      mediaRecorder: null,
+      audioChunks: [],
+      isRecording: false, // Track recording state
+    };
+  },
   methods: {
-    handleButtonClick() {
-      // TODO: Add functionality here
-      console.log("Big button clicked");
+    async handleButtonClick() {
+      // Toggle recording state
+      if (!this.isRecording) {
+        await this.startRecording();
+      } else {
+        await this.stopRecording();
+      }
+    },
+    async startRecording() {
+      try {
+        // Request access to microphone
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.mediaRecorder = new MediaRecorder(stream);
+        this.audioChunks = [];
+        this.isRecording = true; // Update state to reflect recording started
+
+        // Collect audio chunks
+        this.mediaRecorder.ondataavailable = (event) => {
+          this.audioChunks.push(event.data);
+        };
+
+        // Handle stopping and process audio
+        this.mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          this.identifyAudio(arrayBuffer);
+        };
+
+        // Start recording
+        this.mediaRecorder.start();
+        console.log("Recording started...");
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+      }
+    },
+    stopRecording() {
+      if (this.mediaRecorder) {
+        this.mediaRecorder.stop();
+        this.isRecording = false; // Update state to reflect recording stopped
+        console.log("Recording stopped.");
+      }
+    },
+    async identifyAudio(audioBuffer) {
+      try {
+        const response = await fetch("/api/identify", {
+          method: "GET", // Use POST for sending audio data
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ audioBuffer }),
+        });
+        const result = await response.json();
+        console.log("AcrCloud result:", result);
+      } catch (error) {
+        console.error("Error identifying audio:", error);
+      }
     },
   },
 };
 </script>
-
-<style>
-/* Add any custom styles here */
-</style>
