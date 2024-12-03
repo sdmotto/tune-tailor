@@ -18,7 +18,10 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">Currently Playing:</span>
         <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
-          {{ currentSong || "current song" }}
+          {{ currentSong }}
+          {{ trackId }}
+          {{ artistId }}
+          {{ albumId }}
         </div>
       </div>
 
@@ -26,7 +29,7 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">Recommendations:</span>
         <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
-          {{ recommendation || "rec 1" }}
+          rec 1
         </div>
       </div>
 
@@ -34,7 +37,7 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">New Song:</span>
         <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
-          {{ newSong || "title of new song here" }}
+          title of new song here
         </div>
       </div>
     </div>
@@ -49,8 +52,9 @@ const mediaStream = ref(null);
 const isRecording = ref(false);
 const audioChunks = ref([]);
 const currentSong = ref("");
-const recommendation = ref("");
-const newSong = ref("");
+const trackId = ref("");
+const artistId = ref("");
+const albumId = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -110,9 +114,12 @@ const identifyAudio = async (audioBuffer) => {
     const result = await response.json();
     console.log("ACRCloud result:", result);
     // Update UI with identified data
-    currentSong.value = result.metadata.music[0].title || "current song";
-    recommendation.value = result.recommendation || "rec 1";
-    newSong.value = result.newSong || "new song";
+    currentSong.value = result.metadata.music[0].title;
+    trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
+    artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
+    albumId.value = result.metadata.music[0].external_metadata.spotify.album.id;
+    
+
   } catch (error) {
     console.error("Error identifying audio:", error);
   }
