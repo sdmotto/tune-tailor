@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "build-mobile": "npm run generate && npx cap copy"
+    "build-mobile": "npm run generate && npx cap sync"
   },
   "dependencies": {
     "@capacitor-community/media": "^7.0.0",
