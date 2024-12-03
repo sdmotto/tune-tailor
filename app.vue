@@ -48,6 +48,7 @@ export default {
       mediaRecorder: null,
       audioChunks: [],
       isRecording: false, // Track recording state
+      mediaStream: null, // Store the MediaStream to release it later
     };
   },
   methods: {
@@ -62,8 +63,8 @@ export default {
     async startRecording() {
       try {
         // Request access to microphone
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        this.mediaRecorder = new MediaRecorder(stream);
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.mediaRecorder = new MediaRecorder(this.mediaStream);
         this.audioChunks = [];
         this.isRecording = true; // Update state to reflect recording started
 
@@ -77,6 +78,10 @@ export default {
           const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
           const arrayBuffer = await audioBlob.arrayBuffer();
           this.identifyAudio(arrayBuffer);
+
+          // Stop and release the microphone stream
+          this.mediaStream.getTracks().forEach((track) => track.stop());
+          this.mediaStream = null;
         };
 
         // Start recording
@@ -88,7 +93,7 @@ export default {
     },
     stopRecording() {
       if (this.mediaRecorder) {
-        this.mediaRecorder.stop();
+        this.mediaRecorder.stop(); // Stop the MediaRecorder
         this.isRecording = false; // Update state to reflect recording stopped
         console.log("Recording stopped.");
       }
@@ -111,6 +116,7 @@ export default {
   },
 };
 </script>
+
 
 <style>
 </style>
