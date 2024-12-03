@@ -96,7 +96,7 @@ export default {
     async identifyAudio(audioBuffer) {
       try {
         const response = await fetch("/api/identify", {
-          method: "GET", // Use POST for sending audio data
+          method: "POST", // Use POST for sending audio data
           headers: {
             "Content-Type": "application/json",
           },
@@ -111,3 +111,6 @@ export default {
   },
 };
 </script>
+
+<style>
+</style>
