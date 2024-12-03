@@ -21,7 +21,7 @@
           {{ currentSong }}
           {{ trackId }}
           {{ artistId }}
-          {{ albumId }}
+          {{ genre }}
         </div>
       </div>
 
@@ -42,6 +42,8 @@
       </div>
     </div>
   </div>
+
+ 
 </template>
 
 <script setup>
@@ -54,7 +56,7 @@ const audioChunks = ref([]);
 const currentSong = ref("");
 const trackId = ref("");
 const artistId = ref("");
-const albumId = ref("");
+const genre = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -100,6 +102,24 @@ const stopRecording = () => {
   }
 };
 
+const getRecommendations = async () => {
+  try {
+    const response = await fetch("/api/recommendations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ artistId: artistId.value, trackId: trackId.value, genre: genre.value }),
+    });
+
+    const result = await response.json();
+
+    console.log(result);
+  } catch (e) {
+
+  }
+}
+
 const identifyAudio = async (audioBuffer) => {
   try {
     const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
@@ -117,8 +137,10 @@ const identifyAudio = async (audioBuffer) => {
     currentSong.value = result.metadata.music[0].title;
     trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
     artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
-    albumId.value = result.metadata.music[0].external_metadata.spotify.album.id;
+    genre.value = result.metadata.music[0].genres[0].name;
     
+
+    getRecommendations();
 
   } catch (error) {
     console.error("Error identifying audio:", error);
