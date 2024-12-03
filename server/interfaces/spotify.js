@@ -7,6 +7,33 @@ export default class SpotifyAdapter {
     this.token = null;
   }
 
+var authOptions = {
+  url: 'https://accounts.spotify.com/api/token',
+  headers: {
+    'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64'))
+  },
+  form: {
+    grant_type: 'client_credentials'
+  },
+  json: true
+};
+
+request.post(authOptions, function(error, response, body) {
+  if (!error && response.statusCode === 200) {
+    var token = body.access_token;
+  }
+});
+
+//example 200 OK response from above
+/*
+{
+  "access_token": "NgCXRKc...MzYjw",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+*/
+
+
   async authenticate() {
     const authString = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
     try {
