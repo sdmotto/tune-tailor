@@ -100,15 +100,18 @@ export default {
     },
     async identifyAudio(audioBuffer) {
       try {
+        const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+
         const response = await fetch("/api/identify", {
-          method: "POST", // Use POST for sending audio data
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ audioBuffer }),
+          body: JSON.stringify({ audioBuffer: audioBase64 }),
         });
-        const result = await response.json();
-        console.log("AcrCloud result:", result);
+
+      const result = await response.json();
+      console.log("ACRCloud result:", result);
       } catch (error) {
         console.error("Error identifying audio:", error);
       }
