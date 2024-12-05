@@ -1,16 +1,13 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 
 export default class OpenAiAdapter {
   constructor() {
-    const configuration = new Configuration({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-    this.openai = new OpenAIApi(configuration);
+    this.openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
   }
 
   async generateLyrics(prompt) {
     try {
-      const response = await this.openai.createChatCompletion({
+      const response = await this.openai.chat.completions.create({
         model: 'gpt-4',
         messages: [{ role: 'user', content: prompt }],
       });
@@ -24,7 +21,7 @@ export default class OpenAiAdapter {
   async getRecommendations(currentSong, artist, album) {
     const prompt = `I just listened to "${currentSong}" by ${artist} from the album "${album}". Can you recommend similar songs that I might like? Please provide a list of 5 songs with their titles and artists.`;
     try {
-      const response = await this.openai.createCompletion({
+      const response = await this.openai.chat.completions({
         model: 'gpt-4o',
         prompt: prompt,
         max_tokens: 150,
