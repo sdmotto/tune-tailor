@@ -12,6 +12,14 @@
       <span v-else>■</span>
     </button>
 
+    <!-- Debug Button -->
+    <button
+      class="mt-4 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none"
+      @click="handleDebugClick"
+    >
+      Debug
+    </button>
+
     <!-- Three Columns Section -->
     <div class="mt-10 flex w-full justify-around px-10">
       <!-- Currently Playing Column -->
@@ -29,7 +37,7 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">Recommendations:</span>
         <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
-          rec 1
+          {{ recommendations }}
         </div>
       </div>
 
@@ -46,6 +54,7 @@
 
 <script setup>
 import { ref } from "vue";
+
 
 const mediaRecorder = ref(null);
 const mediaStream = ref(null);
@@ -118,10 +127,21 @@ const identifyAudio = async (audioBuffer) => {
     trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
     artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
     albumId.value = result.metadata.music[0].external_metadata.spotify.album.id;
-    
 
   } catch (error) {
     console.error("Error identifying audio:", error);
+  }
+};
+
+const handleDebugClick = async () => {
+  try {
+    const debugSong = 'driver’s license';
+    const debugArtist = 'Olivia Rodrigo';
+    const debugAlbum = 'SOUR';
+
+    recommendations.value = await getRecommendations(debugSong, debugArtist, debugAlbum);
+  } catch (error) {
+    console.error("Error fetching debug recommendations:", error);
   }
 };
 </script>
