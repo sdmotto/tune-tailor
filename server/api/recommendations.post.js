@@ -6,6 +6,10 @@ export default defineEventHandler(async (event) => {
   // Read currentSong, artist, and album from the request body
   const { currentSong, artist, album } = await readBody(event);
 
+  console.log(currentSong)
+  console.log(artist)
+  console.log(album)
+
   // Ensure all parameters are provided
   if (!currentSong || !artist || !album) {
     throw createError({
