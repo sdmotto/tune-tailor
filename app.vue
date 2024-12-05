@@ -1,53 +1,53 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="flex flex-col items-center justify-center h-screen bg-gray-100">
     <!-- Title -->
-    <h1 class="text-4xl font-bold text-blue-700 mb-6 text-center">TuneTailor</h1>
-    {{ isRecording }}
-    {{ error }}
-    <button @click="error=[]" class="border">Clear</button>
-    <button @click="error.push('what the flip')">ermm</button>
+    <h1 class="text-4xl font-bold text-blue-700 mb-8">TuneTailor</h1>
 
     <!-- Dynamic Button -->
     <button
-      class="w-20 h-20 bg-blue-500 rounded-full text-white text-4xl flex items-center justify-center shadow-lg hover:bg-blue-600 focus:outline-none"
+      class="w-24 h-24 bg-blue-500 rounded-full text-white text-4xl flex items-center justify-center shadow-lg hover:bg-blue-600 focus:outline-none"
       @click="handleButtonClick"
     >
       <span v-if="!isRecording">▶</span>
       <span v-else>■</span>
     </button>
 
-    <!-- Three Sections -->
-    <div class="mt-8 flex flex-col sm:flex-row sm:justify-around w-full max-w-2xl px-4 space-y-6 sm:space-y-0 sm:space-x-4">
+    <!-- Three Columns Section -->
+    <div class="mt-10 flex w-full justify-around px-10">
       <!-- Currently Playing Column -->
-      <div class="flex flex-col items-center space-y-2">
-        <span class="text-lg font-bold">Currently Playing:</span>
-        <div class="w-full h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
+      <div class="flex flex-col items-center space-y-4">
+        <span class="text-xl font-bold">Currently Playing:</span>
+        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
           {{ currentSong }}
+          {{ trackId }}
+          {{ artistId }}
+          {{ genre }}
         </div>
       </div>
 
       <!-- Recommendations Column -->
-      <div class="flex flex-col items-center space-y-2">
-        <span class="text-lg font-bold">Recommendations:</span>
-        <div class="w-full h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
+      <div class="flex flex-col items-center space-y-4">
+        <span class="text-xl font-bold">Recommendations:</span>
+        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
           rec 1
         </div>
       </div>
 
       <!-- New Song Column -->
-      <div class="flex flex-col items-center space-y-2">
-        <span class="text-lg font-bold">New Song:</span>
-        <div class="w-full h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
+      <div class="flex flex-col items-center space-y-4">
+        <span class="text-xl font-bold">New Song:</span>
+        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
           title of new song here
         </div>
       </div>
     </div>
   </div>
+
+ 
 </template>
 
 <script setup>
 import { ref } from "vue";
-
 
 const mediaRecorder = ref(null);
 const mediaStream = ref(null);
@@ -57,11 +57,8 @@ const currentSong = ref("");
 const trackId = ref("");
 const artistId = ref("");
 const genre = ref("");
-const error = ref([]);
 
 const handleButtonClick = async () => {
-  error.value.push('what');
-
   if (!isRecording.value) {
     await startRecording();
   } else {
@@ -71,23 +68,8 @@ const handleButtonClick = async () => {
 
 const startRecording = async () => {
   try {
-    console.log("Requesting microphone access...");
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      error.value.push("getUserMedia is not supported on this device.");
-      return;
-    }
-
     mediaStream.value = await navigator.mediaDevices.getUserMedia({ audio: true });
-    console.log("MediaStream obtained:", mediaStream.value);
-
-    if (!window.MediaRecorder) {
-      error.value.push("MediaRecorder is not supported on this device.");
-      return;
-    }
-
     mediaRecorder.value = new MediaRecorder(mediaStream.value);
-    console.log("MediaRecorder initialized:", mediaRecorder.value);
-
     audioChunks.value = [];
     isRecording.value = true;
 
@@ -98,7 +80,6 @@ const startRecording = async () => {
     mediaRecorder.value.onstop = async () => {
       const audioBlob = new Blob(audioChunks.value, { type: "audio/webm" });
       const arrayBuffer = await audioBlob.arrayBuffer();
-      console.log("Recording stopped, processing audio...");
       await identifyAudio(arrayBuffer);
 
       // Stop and release the microphone stream
@@ -108,9 +89,8 @@ const startRecording = async () => {
 
     mediaRecorder.value.start();
     console.log("Recording started...");
-  } catch (err) {
-    error.value.push(err);
-    console.error("Error accessing microphone:", err);
+  } catch (error) {
+    console.error("Error accessing microphone:", error);
   }
 };
 
@@ -136,7 +116,7 @@ const getRecommendations = async () => {
 
     console.log(result);
   } catch (e) {
-    error.value.push(e);
+
   }
 }
 
@@ -160,23 +140,10 @@ const identifyAudio = async (audioBuffer) => {
     genre.value = result.metadata.music[0].genres[0].name;
     
 
-    //getRecommendations();
+    getRecommendations();
 
   } catch (error) {
-    error.value.push(error);
     console.error("Error identifying audio:", error);
-  }
-};
-
-const handleDebugClick = async () => {
-  try {
-    const debugSong = 'driver’s license';
-    const debugArtist = 'Olivia Rodrigo';
-    const debugAlbum = 'SOUR';
-
-    recommendations.value = await getRecommendations(debugSong, debugArtist, debugAlbum);
-  } catch (error) {
-    console.error("Error fetching debug recommendations:", error);
   }
 };
 </script>
