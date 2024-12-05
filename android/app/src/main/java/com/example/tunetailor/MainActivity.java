@@ -1,5 +1,11 @@
 package com.example.tunetailor;
 
-import com.getcapacitor.BridgeActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-public class MainActivity extends BridgeActivity {}
+import com.getcapacitor.BridgeActivity;
+import android.Manifest;
+import android.content.pm.PackageManager;
+
+public class MainActivity extends BridgeActivity {
+}

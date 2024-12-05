@@ -3,9 +3,9 @@ import request from 'request';
 
 export default class AcrCloudAdapter {
   constructor() {
-    this.host = process.env.ACR_HOST; // Ensure this is set correctly in your .env file
-    this.accessKey = process.env.ACR_ACCESS_KEY; // Ensure this is set correctly in your .env file
-    this.accessSecret = process.env.ACR_ACCESS_SECRET; // Ensure this is set correctly in your .env file
+    this.host = process.env.ACR_HOST;
+    this.accessKey = process.env.ACR_ACCESS_KEY;
+    this.accessSecret = process.env.ACR_ACCESS_SECRET;
 
     this.options = {
       host: this.host,
@@ -22,7 +22,6 @@ export default class AcrCloudAdapter {
     const currentData = new Date();
     const timestamp = Math.floor(currentData.getTime() / 1000);
   
-    // Correctly reference `buildStringToSign` and `sign` using `this`
     const stringToSign = this.buildStringToSign(
       'POST',
       this.options.endpoint,
