@@ -15,7 +15,6 @@
     "form-data": "^4.0.1",
     "nuxt": "^3.14.1592",
     "openai": "^4.76.0",
-    "request": "^2.88.2",
     "vue": "latest",
     "vue-router": "latest"
   },
