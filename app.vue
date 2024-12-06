@@ -30,12 +30,8 @@
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
       <!-- Currently Playing Column -->
       <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-semibold text-gray-800"
-          >Currently Playing:</span
-        >
-        <div
-          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-gray-700 shadow-md"
-        >
+        <span class="text-xl font-bold">Currently Playing:</span>
+        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
           {{ currentSong }}
         </div>
       </div>
@@ -92,9 +88,9 @@ const mediaRecorder = ref(null);
 const mediaStream = ref(null);
 const isRecording = ref(false);
 const audioChunks = ref([]);
-const currentSong = ref("");
-const trackId = ref("");
-const artistId = ref("");
+const trackName = ref("");
+const artistName = ref("");
+const albumName = ref("");
 const genre = ref("");
 const recommendations = ref([]); // Store recommendations
 
@@ -144,22 +140,14 @@ const stopRecording = () => {
   }
 };
 
-const getRecommendations = async (
-  customTrackId = trackId.value,
-  customArtistId = artistId.value,
-  customGenre = genre.value,
-) => {
+const getRecommendations = async (customTrackId = trackId.value, customArtistId = artistId.value, customGenre = genre.value) => {
   try {
     const response = await fetch("/api/recommendations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        currentSong: customTrackId,
-        artist: customArtistId,
-        album: customGenre,
-      }),
+      body: JSON.stringify({ currentSong: customTrackId, artist: customArtistId, album: customGenre }),
     });
 
     const result = await response.json();
@@ -193,9 +181,10 @@ const identifyAudio = async (audioBuffer) => {
     // Update UI with identified data
     currentSong.value = result.metadata.music[0].title;
     trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
-    artistId.value =
-      result.metadata.music[0].external_metadata.spotify.artists[0].id;
+    artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
     genre.value = result.metadata.music[0].genres[0].name;
+    albumName.value = result.metadata.music[0].external_metadata.spotify.album.name;
+
 
     getRecommendations();
   } catch (error) {
