@@ -1,11 +1,17 @@
 <template>
-  <div class="flex flex-col items-center justify-center h-screen bg-gray-100">
+  <div
+    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-purple-300"
+  >
     <!-- Title -->
-    <h1 class="text-4xl font-bold text-blue-700 mb-8">TuneTailor</h1>
+    <h1
+      class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-12"
+    >
+      TuneTailor
+    </h1>
 
     <!-- Dynamic Button -->
     <button
-      class="w-24 h-24 bg-blue-500 rounded-full text-white text-4xl flex items-center justify-center shadow-lg hover:bg-blue-600 focus:outline-none"
+      class="w-28 h-28 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white text-4xl flex items-center justify-center shadow-xl hover:scale-105 transform transition-transform duration-300 focus:outline-none"
       @click="handleButtonClick"
     >
       <span v-if="!isRecording">▶</span>
@@ -14,40 +20,65 @@
 
     <!-- Debug Button -->
     <button
-      class="mt-4 w-36 h-12 bg-green-500 rounded-lg text-white text-xl flex items-center justify-center shadow-lg hover:bg-green-600 focus:outline-none"
+      class="mt-6 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
       @click="debugRecommendations"
     >
       Debug Recommendations
     </button>
 
     <!-- Three Columns Section -->
-    <div class="mt-10 flex w-full justify-around px-10">
+    <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
       <!-- Currently Playing Column -->
       <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-bold">Currently Playing:</span>
-        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
+        <span class="text-xl font-semibold text-gray-800"
+          >Currently Playing:</span
+        >
+        <div
+          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-gray-700 shadow-md"
+        >
           {{ currentSong }}
         </div>
       </div>
 
       <!-- Recommendations Column -->
-<div class="flex flex-col items-center space-y-4">
-  <span class="text-xl font-bold">Recommendations:</span>
-  <div class="w-64 h-40 bg-gray-200 rounded-lg flex flex-col items-start justify-start text-gray-700 p-2 overflow-auto">
-    <ul class="list-disc pl-4">
-      <li v-for="(recommendation, index) in recommendations" :key="index" class="mb-1">
-        {{ recommendation }}
-      </li>
-    </ul>
-  </div>
-</div>
 
+      <div class="flex flex-col items-center space-y-4 mb-8">
+        <span class="text-xl font-semibold text-gray-800"
+          >Recommendations:</span
+        >
+        <div class="flex flex-col w-full space-y-4">
+          <!-- Placeholder when no recommendations are available -->
+          <div
+            v-if="recommendations.length === 0"
+            class="p-4 h-12 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-500"
+          ></div>
+          <!-- Render recommendations when available -->
+          <div
+            v-for="(recommendation, index) in recommendations"
+            :key="index"
+            class="flex items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transform transition-shadow duration-300"
+          >
+            <!-- Icon -->
+            <div
+              class="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-bold mr-4"
+            >
+              {{ index + 1 }}
+            </div>
+            <!-- Recommendation Text -->
+            <div class="flex-1 text-gray-800 font-medium">
+              {{ recommendation }}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- New Song Column -->
       <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-bold">New Song:</span>
-        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
-          title of new song here
+        <span class="text-xl font-semibold text-gray-800">New Song:</span>
+        <div
+          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-gray-700 shadow-md"
+        >
+          Title of new song here
         </div>
       </div>
     </div>
@@ -77,7 +108,9 @@ const handleButtonClick = async () => {
 
 const startRecording = async () => {
   try {
-    mediaStream.value = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaStream.value = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
     mediaRecorder.value = new MediaRecorder(mediaStream.value);
     audioChunks.value = [];
     isRecording.value = true;
@@ -111,14 +144,22 @@ const stopRecording = () => {
   }
 };
 
-const getRecommendations = async (customTrackId = trackId.value, customArtistId = artistId.value, customGenre = genre.value) => {
+const getRecommendations = async (
+  customTrackId = trackId.value,
+  customArtistId = artistId.value,
+  customGenre = genre.value,
+) => {
   try {
     const response = await fetch("/api/recommendations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ currentSong: customTrackId, artist: customArtistId, album: customGenre }),
+      body: JSON.stringify({
+        currentSong: customTrackId,
+        artist: customArtistId,
+        album: customGenre,
+      }),
     });
 
     const result = await response.json();
@@ -136,7 +177,9 @@ const getRecommendations = async (customTrackId = trackId.value, customArtistId 
 
 const identifyAudio = async (audioBuffer) => {
   try {
-    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    const audioBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(audioBuffer)),
+    );
     const response = await fetch("/api/identify", {
       method: "POST",
       headers: {
@@ -150,7 +193,8 @@ const identifyAudio = async (audioBuffer) => {
     // Update UI with identified data
     currentSong.value = result.metadata.music[0].title;
     trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
-    artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
+    artistId.value =
+      result.metadata.music[0].external_metadata.spotify.artists[0].id;
     genre.value = result.metadata.music[0].genres[0].name;
 
     getRecommendations();
@@ -165,6 +209,4 @@ const debugRecommendations = () => {
 };
 </script>
 
-
-<style>
-</style>
+<style></style>
