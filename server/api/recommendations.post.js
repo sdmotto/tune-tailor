@@ -4,7 +4,7 @@ import OpenAiAdapter from "../interfaces/openAi";
 
 export default defineEventHandler(async (event) => {
   // Read currentSong, artist, and album from the request body
-  const { currentSong, artist, album } = await readBody(event);
+  const { currentSong, artist, albumTitle, genre } = await readBody(event);
 
   console.log(currentSong);
   console.log(artist);
@@ -25,7 +25,8 @@ export default defineEventHandler(async (event) => {
     const recommendations = await openAi.getRecommendations(
       currentSong,
       artist,
-      album,
+      albumTitle,
+      genre
     );
     return { recommendations };
   } catch (error) {

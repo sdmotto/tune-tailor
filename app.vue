@@ -88,10 +88,10 @@ const mediaRecorder = ref(null);
 const mediaStream = ref(null);
 const isRecording = ref(false);
 const audioChunks = ref([]);
-const trackId = ref("");
-const artistId = ref("");
-const currentSong = ref("");
+const trackName = ref("");
+const artistName = ref("");
 const albumName = ref("");
+const currentSong = ref("");
 const genre = ref("");
 const recommendations = ref([]); // Store recommendations
 
@@ -142,9 +142,10 @@ const stopRecording = () => {
 };
 
 const getRecommendations = async (
-  customTrackId = trackId.value,
-  customArtistId = artistId.value,
+  customTrackId = trackName.value,
+  customArtistId = artistName.value,
   customGenre = genre.value,
+  album = albumName.value
 ) => {
   try {
     const response = await fetch("/api/recommendations", {
@@ -155,7 +156,8 @@ const getRecommendations = async (
       body: JSON.stringify({
         currentSong: customTrackId,
         artist: customArtistId,
-        album: customGenre,
+        genre: customGenre,
+        albumTitle: album
       }),
     });
 
@@ -189,12 +191,10 @@ const identifyAudio = async (audioBuffer) => {
     console.log("ACRCloud result:", result);
     // Update UI with identified data
     currentSong.value = result.metadata.music[0].title;
-    trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
-    artistId.value =
-      result.metadata.music[0].external_metadata.spotify.artists[0].id;
+    trackId.value = result.metadata.music[0].external_metadata.spotify.track.name;
+    artistName.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
     genre.value = result.metadata.music[0].genres[0].name;
-    albumName.value =
-      result.metadata.music[0].external_metadata.spotify.album.name;
+    albumName.value = result.metadata.music[0].external_metadata.spotify.album.name;
 
     getRecommendations();
   } catch (error) {

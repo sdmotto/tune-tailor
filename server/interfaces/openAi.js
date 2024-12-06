@@ -18,7 +18,7 @@ export default class OpenAiAdapter {
   }
 
   async getRecommendations(currentSong, artist, album) {
-    const prompt = `I just listened to "${currentSong}" by ${artist} from the album "${album}". Can you recommend similar songs that I might like? Please provide a list of 5 songs with their titles and artists.
+    const prompt = `I just listened to "${currentSong}" by ${artist} from the album "${albumTitle} in genre "${genre}". Can you recommend similar songs that I might like? Please provide a list of 5 songs with their titles and artists.
     Format your response in this format: "SONG by ARTIST, SONG by ARTIST, SONG by ARTIST". Don't use new line characters, and just use commas to separate your recs.
     Give varied recommendations, and don't use any single artist more than twice.`;
 
