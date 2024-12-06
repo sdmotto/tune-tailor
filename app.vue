@@ -72,7 +72,7 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">New Song:</span>
         <div
-          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-black shadow-md"
+          class="p-4 h-12 w-full bg-white rounded-lg shadow-md flex items-center justify-center text-black"
         >
           Title of new song here
         </div>
