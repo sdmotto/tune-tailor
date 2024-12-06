@@ -31,7 +31,9 @@
       <!-- Currently Playing Column -->
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">Currently Playing:</span>
-        <div class="w-64 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-700">
+        <div
+          class="p-4 h-12 w-full bg-white rounded-lg shadow-md flex items-center justify-center text-black"
+        >
           {{ currentSong }}
         </div>
       </div>
@@ -39,9 +41,7 @@
       <!-- Recommendations Column -->
 
       <div class="flex flex-col items-center space-y-4 mb-8">
-        <span class="text-xl font-semibold text-gray-800"
-          >Recommendations:</span
-        >
+        <span class="text-xl font-bold">Recommendations:</span>
         <div class="flex flex-col w-full space-y-4">
           <!-- Placeholder when no recommendations are available -->
           <div
@@ -70,9 +70,9 @@
 
       <!-- New Song Column -->
       <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-semibold text-gray-800">New Song:</span>
+        <span class="text-xl font-bold">New Song:</span>
         <div
-          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-gray-700 shadow-md"
+          class="w-full h-12 bg-white rounded-xl flex items-center justify-center text-black shadow-md"
         >
           Title of new song here
         </div>
@@ -88,8 +88,9 @@ const mediaRecorder = ref(null);
 const mediaStream = ref(null);
 const isRecording = ref(false);
 const audioChunks = ref([]);
-const trackName = ref("");
-const artistName = ref("");
+const trackId = ref("");
+const artistId = ref("");
+const currentSong = ref("");
 const albumName = ref("");
 const genre = ref("");
 const recommendations = ref([]); // Store recommendations
@@ -140,14 +141,22 @@ const stopRecording = () => {
   }
 };
 
-const getRecommendations = async (customTrackId = trackId.value, customArtistId = artistId.value, customGenre = genre.value) => {
+const getRecommendations = async (
+  customTrackId = trackId.value,
+  customArtistId = artistId.value,
+  customGenre = genre.value,
+) => {
   try {
     const response = await fetch("/api/recommendations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ currentSong: customTrackId, artist: customArtistId, album: customGenre }),
+      body: JSON.stringify({
+        currentSong: customTrackId,
+        artist: customArtistId,
+        album: customGenre,
+      }),
     });
 
     const result = await response.json();
@@ -181,10 +190,11 @@ const identifyAudio = async (audioBuffer) => {
     // Update UI with identified data
     currentSong.value = result.metadata.music[0].title;
     trackId.value = result.metadata.music[0].external_metadata.spotify.track.id;
-    artistId.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
+    artistId.value =
+      result.metadata.music[0].external_metadata.spotify.artists[0].id;
     genre.value = result.metadata.music[0].genres[0].name;
-    albumName.value = result.metadata.music[0].external_metadata.spotify.album.name;
-
+    albumName.value =
+      result.metadata.music[0].external_metadata.spotify.album.name;
 
     getRecommendations();
   } catch (error) {
