@@ -34,7 +34,10 @@
         <div
           class="p-4 h-12 w-full bg-white rounded-lg shadow-md flex items-center justify-center text-black"
         >
-          {{ currentSong }}
+          <div v-if="!identifying">
+            {{ display }}
+          </div>
+          <Loading v-else />
         </div>
       </div>
 
@@ -47,7 +50,9 @@
           <div
             v-if="recommendations.length === 0"
             class="p-4 h-12 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-500"
-          ></div>
+          >
+            <Loading v-if="recommending" />
+          </div>
           <!-- Render recommendations when available -->
           <div
             v-for="(recommendation, index) in recommendations"
@@ -88,12 +93,16 @@ const mediaRecorder = ref(null);
 const mediaStream = ref(null);
 const isRecording = ref(false);
 const audioChunks = ref([]);
-const trackName = ref("");
+
+const identifying = ref(false);
 const artistName = ref("");
 const albumName = ref("");
 const currentSong = ref("");
 const genre = ref("");
-const recommendations = ref([]); // Store recommendations
+const display = ref("");
+
+const recommending = ref(false);
+const recommendations = ref([]);
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -104,7 +113,15 @@ const handleButtonClick = async () => {
 };
 
 const startRecording = async () => {
+  recommendations.value = [];
+  display.value = "";
+
   try {
+    // Stop any existing recording to prevent conflicts
+    if (mediaRecorder.value && isRecording.value) {
+      stopRecording();
+    }
+
     mediaStream.value = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
@@ -117,13 +134,22 @@ const startRecording = async () => {
     };
 
     mediaRecorder.value.onstop = async () => {
-      const audioBlob = new Blob(audioChunks.value, { type: "audio/webm" });
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      await identifyAudio(arrayBuffer);
+      if (audioChunks.value.length > 0) {
+        const audioBlob = new Blob(audioChunks.value, { type: "audio/webm" });
+        const arrayBuffer = await audioBlob.arrayBuffer();
 
-      // Stop and release the microphone stream
-      mediaStream.value.getTracks().forEach((track) => track.stop());
-      mediaStream.value = null;
+        try {
+          await identifyAudio(arrayBuffer);
+        } catch (error) {
+          console.error("Error processing audio identification:", error);
+        }
+      }
+
+      // Stop and release the microphone stream safely
+      if (mediaStream.value) {
+        mediaStream.value.getTracks().forEach((track) => track.stop());
+        mediaStream.value = null;
+      }
     };
 
     mediaRecorder.value.start();
@@ -134,19 +160,17 @@ const startRecording = async () => {
 };
 
 const stopRecording = () => {
-  if (mediaRecorder.value) {
-    mediaRecorder.value.stop();
+  if (mediaRecorder.value && isRecording.value) {
     isRecording.value = false;
+    mediaRecorder.value.stop();
     console.log("Recording stopped.");
   }
 };
 
-const getRecommendations = async (
-  customTrackId = trackName.value,
-  customArtistId = artistName.value,
-  customGenre = genre.value,
-  album = albumName.value
-) => {
+const getRecommendations = async () => {
+  recommending.value = true;
+  recommendations.value = [];
+
   try {
     const response = await fetch("/api/recommendations", {
       method: "POST",
@@ -154,10 +178,10 @@ const getRecommendations = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        currentSong: customTrackId,
-        artist: customArtistId,
-        genre: customGenre,
-        albumTitle: album
+        currentSong: currentSong.value,
+        artist: artistName.value,
+        genre: genre.value,
+        albumTitle: albumName.value
       }),
     });
 
@@ -165,20 +189,30 @@ const getRecommendations = async (
 
     console.log("Recommendations result:", result);
 
-    // Parse response and split by commas
-    recommendations.value = (result.recommendations || "")
-      .split(",") // Split by commas
-      .map((item) => item.trim()); // Trim whitespace
+    recommendations.value = result.recommendations.map(entry => `${entry.song} by ${entry.artist}`);
   } catch (e) {
     console.error("Error fetching recommendations:", e);
   }
+
+  recommending.value = false;
 };
 
 const identifyAudio = async (audioBuffer) => {
+  identifying.value = true;
   try {
-    const audioBase64 = btoa(
-      String.fromCharCode(...new Uint8Array(audioBuffer)),
-    );
+    const uint8Array = new Uint8Array(audioBuffer);
+    let binaryString = "";
+    const chunkSize = 65536; // 64 KB chunks
+
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      binaryString += String.fromCharCode.apply(
+        null,
+        uint8Array.slice(i, i + chunkSize)
+      );
+    }
+
+    const audioBase64 = btoa(binaryString);
+
     const response = await fetch("/api/identify", {
       method: "POST",
       headers: {
@@ -189,22 +223,37 @@ const identifyAudio = async (audioBuffer) => {
 
     const result = await response.json();
     console.log("ACRCloud result:", result);
-    // Update UI with identified data
-    currentSong.value = result.metadata.music[0].title;
-    trackId.value = result.metadata.music[0].external_metadata.spotify.track.name;
-    artistName.value = result.metadata.music[0].external_metadata.spotify.artists[0].id;
-    genre.value = result.metadata.music[0].genres[0].name;
-    albumName.value = result.metadata.music[0].external_metadata.spotify.album.name;
 
-    getRecommendations();
+    if (result.status.code === 1001) {
+      display.value = "Error identifying song";
+      recommendations.value = ['No recommendations'];
+    } else {
+      currentSong.value = result.metadata.music[0].title;
+      artistName.value = result.metadata.music[0].artists[0].name;
+      genre.value = result.metadata.music[0].genres[0].name;
+      albumName.value = result.metadata.music[0].album.name;
+
+      display.value = `${currentSong.value} by ${artistName.value}`
+
+      identifying.value = false;
+      await getRecommendations();
+    }
+    
   } catch (error) {
     console.error("Error identifying audio:", error);
+    display.value = "Error identifying song";
+    recommendations.value = ['No recommendations'];
   }
 };
 
 // Debug function
 const debugRecommendations = () => {
-  getRecommendations("good 4 u", "Olivia Rodrigo", "SOUR");
+  currentSong.value = "good 4 u";
+  artistName.value = "Olivia Rodrigo";
+  albumName.value = "SOUR";
+  genre.value = "";
+
+  getRecommendations();
 };
 </script>
 

@@ -17,10 +17,24 @@ export default class OpenAiAdapter {
     }
   }
 
-  async getRecommendations(currentSong, artist, album) {
-    const prompt = `I just listened to "${currentSong}" by ${artist} from the album "${albumTitle} in genre "${genre}". Can you recommend similar songs that I might like? Please provide a list of 5 songs with their titles and artists.
-    Format your response in this format: "SONG by ARTIST, SONG by ARTIST, SONG by ARTIST". Don't use new line characters, and just use commas to separate your recs.
-    Give varied recommendations, and don't use any single artist more than twice.`;
+  async getRecommendations(currentSong, artist, album, genre) {
+    const prompt = `
+    I just listened to "${currentSong}" by ${artist} from the album "${album} in genre "${genre}".
+    Can you recommend similar songs that I might like? 
+    Please provide a list of EXACTLY 5 songs with their titles and artists.
+    Format your response in this EXACT format:
+    [
+      {
+        "song": "song1",
+        "artist": "artist1"
+      },
+      {
+        "song": "song2",
+        "artist": "artist2"
+      },
+      etc.
+    ]
+    Give varied recommendations, and DO NOT use any single artist more than twice.`;
 
     try {
       const response = await this.openai.chat.completions.create({
@@ -30,8 +44,11 @@ export default class OpenAiAdapter {
         temperature: 0.7,
       });
 
-      // Extract and return the generated text
-      return response.choices[0].message.content.trim();
+      const responseText = response.choices[0].message.content.trim();
+
+      const recommendations = JSON.parse(responseText);
+
+      return recommendations;
     } catch (error) {
       console.error("Error during OpenAI API call:", error);
       throw error;
