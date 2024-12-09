@@ -5,13 +5,38 @@ export default class OpenAiAdapter {
     this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
 
-  async generateLyrics(prompt) {
+  async generateLyrics(song, artist) {
+    const prompt = `
+    Using the song "${song}" by ${artist} as inspiration, write the lyrics for a brand new song. 
+    The new song should:
+    - Maintain a similar theme or emotional tone as "${song}".
+    - Use creative and original lyrics that are not directly copied from the original song.
+    - Include a title for the new song.
+    - Provide the lyrics formatted in this EXACT format:
+    [title]
+    title
+
+    [verse]
+    verse
+
+    [chorus]
+    chorus
+
+    [bridge IF APPLICABLE]
+    bridge
+
+    Avoid any copyright infringement by ensuring the lyrics are entirely original.
+    `;
+
     try {
       const response = await this.openai.chat.completions.create({
         model: "gpt-4",
         messages: [{ role: "user", content: prompt }],
+        max_tokens: 300,
+        temperature: 0.7,
       });
-      return response.data.choices[0].message.content;
+
+      return response.choices[0].message.content.trim();
     } catch (error) {
       throw new Error(`OpenAI GPT-4 error: ${error.message}`);
     }

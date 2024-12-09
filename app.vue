@@ -25,6 +25,12 @@
     >
       Debug Recommendations
     </button>
+    <button
+      class="mt-6 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+      @click="debugLyrics"
+    >
+      Debug Lyrics
+    </button>
 
     <!-- Three Columns Section -->
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
@@ -77,9 +83,25 @@
       <div class="flex flex-col items-center space-y-4">
         <span class="text-xl font-bold">New Song:</span>
         <div
-          class="p-4 h-12 w-full bg-white rounded-lg shadow-md flex items-center justify-center text-black"
+          class="p-6 w-full bg-white rounded-lg shadow-md text-black max-w-3xl"
         >
-          Title of new song here
+          <!-- Display the song content or a loader -->
+          <div
+            v-if="!generatingSong"
+            class="whitespace-pre-wrap text-gray-800 leading-relaxed text-center"
+          >
+            <div>
+              {{ newSong }}
+            </div>
+            <button
+              class="px-6 py-3 mt-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+            >
+              Generate Song
+            </button>
+          </div>
+          <div v-else class="flex items-center justify-center">
+            <Loading />
+          </div>
         </div>
       </div>
     </div>
@@ -103,6 +125,9 @@ const display = ref("");
 
 const recommending = ref(false);
 const recommendations = ref([]);
+
+const generatingSong = ref(false);
+const newSong = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -181,7 +206,7 @@ const getRecommendations = async () => {
         currentSong: currentSong.value,
         artist: artistName.value,
         genre: genre.value,
-        albumTitle: albumName.value
+        albumTitle: albumName.value,
       }),
     });
 
@@ -189,7 +214,9 @@ const getRecommendations = async () => {
 
     console.log("Recommendations result:", result);
 
-    recommendations.value = result.recommendations.map(entry => `${entry.song} by ${entry.artist}`);
+    recommendations.value = result.recommendations.map(
+      (entry) => `${entry.song} by ${entry.artist}`,
+    );
   } catch (e) {
     console.error("Error fetching recommendations:", e);
   }
@@ -207,7 +234,7 @@ const identifyAudio = async (audioBuffer) => {
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
       binaryString += String.fromCharCode.apply(
         null,
-        uint8Array.slice(i, i + chunkSize)
+        uint8Array.slice(i, i + chunkSize),
       );
     }
 
@@ -224,26 +251,47 @@ const identifyAudio = async (audioBuffer) => {
     const result = await response.json();
     console.log("ACRCloud result:", result);
 
-    if (result.status.code === 1001) {
+    if (result.status.code !== 0) {
       display.value = "Error identifying song";
-      recommendations.value = ['No recommendations'];
+      recommendations.value = ["No recommendations"];
+      identifying.value = false;
     } else {
       currentSong.value = result.metadata.music[0].title;
       artistName.value = result.metadata.music[0].artists[0].name;
       genre.value = result.metadata.music[0].genres[0].name;
       albumName.value = result.metadata.music[0].album.name;
 
-      display.value = `${currentSong.value} by ${artistName.value}`
+      display.value = `${currentSong.value} by ${artistName.value}`;
 
       identifying.value = false;
       await getRecommendations();
+      await generateLyrics();
     }
-    
   } catch (error) {
     console.error("Error identifying audio:", error);
     display.value = "Error identifying song";
-    recommendations.value = ['No recommendations'];
+    recommendations.value = ["No recommendations"];
+    identifying.value = false;
   }
+};
+
+const generateLyrics = async () => {
+  generatingSong.value = true;
+
+  const response = await fetch("/api/generate-lyrics", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ song: currentSong.value, artist: artistName.value }),
+  });
+
+  const result = await response.json();
+
+  console.log("Lyrics result: ", result);
+  newSong.value = result.song;
+
+  generatingSong.value = false;
 };
 
 // Debug function
@@ -254,6 +302,13 @@ const debugRecommendations = () => {
   genre.value = "";
 
   getRecommendations();
+};
+
+const debugLyrics = () => {
+  currentSong.value = "good 4 u";
+  artistName.value = "Olivia Rodrigo";
+
+  generateLyrics();
 };
 </script>
 
