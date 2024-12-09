@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-purple-300"
+    class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-purple-300 relative"
   >
     <!-- Title -->
     <h1
@@ -106,7 +106,19 @@
         </div>
       </div>
     </div>
-    <div class="mt-5" />
+
+    <!-- Image in Top-Right Corner -->
+    <div
+      class="absolute top-4 right-4 flex items-center justify-center w-40 h-40 bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden"
+    >
+      <Loading v-if="generatingImage" />
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        class="w-full h-full object-cover"
+        alt="Generated Image"
+      />
+    </div>
   </div>
 </template>
 
@@ -130,6 +142,9 @@ const recommendations = ref([]);
 
 const generatingSong = ref(false);
 const newSong = ref("");
+
+const generatingImage = ref(false);
+const imageUrl = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -265,9 +280,11 @@ const identifyAudio = async (audioBuffer) => {
       albumName.value = result.metadata.music[0].album.name;
 
       display.value = `"${currentSong.value}" by ${artistName.value}`;
+      identifying.value = false;
 
       getRecommendations();
       generateLyrics();
+      generateImage();
     }
   } catch (error) {
     console.error("Error identifying audio:", error);
@@ -302,6 +319,31 @@ const generateLyrics = async () => {
   }
 
   generatingSong.value = false;
+};
+
+const generateImage = async () => {
+  generatingImage.value = true;
+  try {
+    const response = await fetch("/api/generate-image", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        song: currentSong.value,
+        artist: artistName.value,
+        album: albumName.value
+      }),
+    });
+
+    const result = await response.json();
+    imageUrl.value = result.image;
+    generatingImage.value = false;
+
+    console.log("Image result: ", result);
+  } catch (e) {
+    newSong.value = "Error generating image";
+  }
 };
 
 // Debug functions

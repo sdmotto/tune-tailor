@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import axios from "axios";
 
 export default class OpenAiAdapter {
   constructor() {
@@ -76,6 +77,23 @@ export default class OpenAiAdapter {
     } catch (error) {
       console.error("Error during OpenAI API call:", error);
       throw error;
+    }
+  }
+
+  async generateImage(song, artist, album) {
+
+    try {
+      const response = await this.openai.images.generate({
+        prompt: `Please make an image based on this song ${song} by ${artist} from album ${album}`,
+        n: 1,
+        size: "512x512",
+      });
+  
+      const imageUrl = response.data[0].url;
+  
+      return imageUrl
+    } catch (error) {
+      throw new Error(`OpenAI DALL-E error: ${error.message}`);
     }
   }
 }
