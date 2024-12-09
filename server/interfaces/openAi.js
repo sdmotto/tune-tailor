@@ -22,17 +22,16 @@ export default class OpenAiAdapter {
     [chorus]
     chorus
 
-    [bridge IF APPLICABLE]
-    bridge
+    etc
 
     Avoid any copyright infringement by ensuring the lyrics are entirely original.
+    Ensure that the song is complete. That means if you start a tag like [chorus], make sure to complete it entirely.
     `;
 
     try {
       const response = await this.openai.chat.completions.create({
         model: "gpt-4",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 300,
         temperature: 0.7,
       });
 

@@ -258,26 +258,25 @@ const identifyAudio = async (audioBuffer) => {
       display.value = "Error identifying song";
       recommendations.value = ["No recommendations"];
       newSong.value = "Error generating new song";
-      identifying.value = false;
     } else {
       currentSong.value = result.metadata.music[0].title;
       artistName.value = result.metadata.music[0].artists[0].name;
       genre.value = result.metadata.music[0].genres[0].name;
       albumName.value = result.metadata.music[0].album.name;
 
-      display.value = `${currentSong.value} by ${artistName.value}`;
+      display.value = `"${currentSong.value}" by ${artistName.value}`;
 
-      identifying.value = false;
-      await getRecommendations();
-      await generateLyrics();
+      getRecommendations();
+      generateLyrics();
     }
   } catch (error) {
     console.error("Error identifying audio:", error);
     display.value = "Error identifying song";
     recommendations.value = ["No recommendations"];
     newSong.value = "Error generating new song";
-    identifying.value = false;
   }
+
+  identifying.value = false;
 };
 
 const generateLyrics = async () => {
@@ -305,13 +304,13 @@ const generateLyrics = async () => {
   generatingSong.value = false;
 };
 
-// Debug function
+// Debug functions
 const debugRecommendations = () => {
   currentSong.value = "good 4 u";
   artistName.value = "Olivia Rodrigo";
   albumName.value = "SOUR";
   genre.value = "";
-  display.value = `${currentSong.value} by ${artistName.value}`;
+  display.value = `"${currentSong.value}" by ${artistName.value}`;
 
   getRecommendations();
 };
@@ -319,7 +318,7 @@ const debugRecommendations = () => {
 const debugLyrics = () => {
   currentSong.value = "good 4 u";
   artistName.value = "Olivia Rodrigo";
-  display.value = `${currentSong.value} by ${artistName.value}`;
+  display.value = `"${currentSong.value}" by ${artistName.value}`;
 
   generateLyrics();
 };
