@@ -4,7 +4,7 @@
   >
     <!-- Title -->
     <h1
-      class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-12"
+      class="text-5xl mt-8 font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-12"
     >
       TuneTailor
     </h1>
@@ -18,61 +18,62 @@
       <span v-else>■</span>
     </button>
 
-    <!-- Debug Button -->
-    <button
-      class="mt-6 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-      @click="debugRecommendations"
-    >
-      Debug Recommendations
-    </button>
-    <button
-      class="mt-6 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-      @click="debugLyrics"
-    >
-      Debug Lyrics
-    </button>
+    <!-- Debug Buttons -->
+    <div class="flex space-x-4 mt-6">
+      <button
+        class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+        @click="debugRecommendations"
+      >
+        Debug Recommendations
+      </button>
+      <button
+        class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+        @click="debugLyrics"
+      >
+        Debug Lyrics
+      </button>
+    </div>
 
     <!-- Three Columns Section -->
-    <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+    <div
+      class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl auto-rows-auto"
+    >
       <!-- Currently Playing Column -->
-      <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-bold">Currently Playing:</span>
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">Currently Playing:</span>
         <div
-          class="p-4 h-12 w-full bg-white rounded-lg shadow-md flex items-center justify-center text-black"
+          class="p-4 h-14 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 text-center"
         >
-          <div v-if="!identifying">
-            {{ display }}
-          </div>
+          <div v-if="!identifying">{{ display }}</div>
           <Loading v-else />
         </div>
       </div>
 
       <!-- Recommendations Column -->
-
-      <div class="flex flex-col items-center space-y-4 mb-8">
-        <span class="text-xl font-bold">Recommendations:</span>
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">Recommendations:</span>
         <div class="flex flex-col w-full space-y-4">
-          <!-- Placeholder when no recommendations are available -->
           <div
             v-if="recommendations.length === 0"
-            class="p-4 h-12 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-500"
+            class="p-4 h-14 bg-gray-50 rounded-md shadow-inner text-gray-800 text-center"
           >
             <Loading v-if="recommending" />
           </div>
-          <!-- Render recommendations when available -->
           <div
             v-for="(recommendation, index) in recommendations"
             :key="index"
-            class="flex items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transform transition-shadow duration-300"
+            class="flex items-center p-4 bg-gray-50 rounded-md shadow-inner hover:shadow-lg transform transition-shadow duration-300"
           >
-            <!-- Icon -->
             <div
               class="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-bold mr-4"
             >
               {{ index + 1 }}
             </div>
-            <!-- Recommendation Text -->
-            <div class="flex-1 text-gray-800 font-medium">
+            <div class="flex-1 font-medium text-gray-800">
               {{ recommendation }}
             </div>
           </div>
@@ -80,21 +81,21 @@
       </div>
 
       <!-- New Song Column -->
-      <div class="flex flex-col items-center space-y-4">
-        <span class="text-xl font-bold">New Song:</span>
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">New Song:</span>
         <div
-          class="p-6 w-full bg-white rounded-lg shadow-md text-black max-w-3xl"
+          :class="{ 'h-14': !newSong }"
+          class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 leading-relaxed"
         >
-          <!-- Display the song content or a loader -->
-          <div
-            v-if="!generatingSong"
-            class="whitespace-pre-wrap text-gray-800 leading-relaxed text-center"
-          >
+          <div v-if="!generatingSong" class="whitespace-pre-wrap text-center">
             <div>
               {{ newSong }}
             </div>
             <button
-              class="px-6 py-3 mt-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+              v-if="newSong && newSong !== 'Error generating new song'"
+              class="px-6 py-3 mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
             >
               Generate Song
             </button>
@@ -105,6 +106,7 @@
         </div>
       </div>
     </div>
+    <div class="mt-5" />
   </div>
 </template>
 
@@ -140,6 +142,7 @@ const handleButtonClick = async () => {
 const startRecording = async () => {
   recommendations.value = [];
   display.value = "";
+  newSong.value = "";
 
   try {
     // Stop any existing recording to prevent conflicts
@@ -254,6 +257,7 @@ const identifyAudio = async (audioBuffer) => {
     if (result.status.code !== 0) {
       display.value = "Error identifying song";
       recommendations.value = ["No recommendations"];
+      newSong.value = "Error generating new song";
       identifying.value = false;
     } else {
       currentSong.value = result.metadata.music[0].title;
@@ -271,25 +275,32 @@ const identifyAudio = async (audioBuffer) => {
     console.error("Error identifying audio:", error);
     display.value = "Error identifying song";
     recommendations.value = ["No recommendations"];
+    newSong.value = "Error generating new song";
     identifying.value = false;
   }
 };
 
 const generateLyrics = async () => {
   generatingSong.value = true;
+  try {
+    const response = await fetch("/api/generate-lyrics", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        song: currentSong.value,
+        artist: artistName.value,
+      }),
+    });
 
-  const response = await fetch("/api/generate-lyrics", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ song: currentSong.value, artist: artistName.value }),
-  });
+    const result = await response.json();
 
-  const result = await response.json();
-
-  console.log("Lyrics result: ", result);
-  newSong.value = result.song;
+    console.log("Lyrics result: ", result);
+    newSong.value = result.song;
+  } catch (e) {
+    newSong.value = "Error generating lyrics";
+  }
 
   generatingSong.value = false;
 };
@@ -300,6 +311,7 @@ const debugRecommendations = () => {
   artistName.value = "Olivia Rodrigo";
   albumName.value = "SOUR";
   genre.value = "";
+  display.value = `${currentSong.value} by ${artistName.value}`;
 
   getRecommendations();
 };
@@ -307,6 +319,7 @@ const debugRecommendations = () => {
 const debugLyrics = () => {
   currentSong.value = "good 4 u";
   artistName.value = "Olivia Rodrigo";
+  display.value = `${currentSong.value} by ${artistName.value}`;
 
   generateLyrics();
 };
