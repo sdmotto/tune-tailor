@@ -84,9 +84,10 @@ export default class OpenAiAdapter {
 
     try {
       const response = await this.openai.images.generate({
-        prompt: `Please make an image based on this song ${song} by ${artist} from album ${album}`,
+        prompt: `Please make an image based on this song ${song} by ${artist} from album ${album}. Image only without typography`,
+        model: 'dall-e-3',
         n: 1,
-        size: "512x512",
+        size: '1024x1024',
       });
   
       const imageUrl = response.data[0].url;

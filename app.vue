@@ -81,37 +81,52 @@
       </div>
 
       <!-- New Song Column -->
-      <div
-        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
-      >
-        <span class="text-xl font-bold text-gray-700">New Song:</span>
+      <div class="flex flex-col space-y-4">
         <div
-          :class="{ 'h-14': !newSong }"
-          class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 leading-relaxed"
+          class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md"
         >
-          <div v-if="!generatingSong" class="whitespace-pre-wrap text-center">
-            <div>
-              {{ newSong }}
+          <span class="text-xl font-bold text-gray-700">New Song:</span>
+          <div
+            :class="{ 'h-14': !newSong }"
+            class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 leading-relaxed"
+          >
+            <div v-if="!generatingSong" class="whitespace-pre-wrap text-center">
+              <div>
+                {{ newSong }}
+              </div>
+              <button
+                v-if="newSong && newSong !== 'Error generating new song'"
+                class="px-6 py-3 mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+              >
+                Generate Song
+              </button>
             </div>
-            <button
-              v-if="newSong && newSong !== 'Error generating new song'"
-              class="px-6 py-3 mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-            >
-              Generate Song
-            </button>
+            <div v-else class="flex items-center justify-center">
+              <Loading />
+            </div>
           </div>
-          <div v-else class="flex items-center justify-center">
-            <Loading />
-          </div>
+        </div>
+
+        <!-- Message Card -->
+        <div
+          class="p-4 bg-white border border-gray-300 rounded-lg shadow-md"
+        >
+          <h2 class="text-lg font-bold text-gray-800 mb-2">
+            Need a Full Composition?
+          </h2>
+          <p class="text-gray-600">
+            For a full composition with lyrics, paste the new song into <strong>Suno</strong>.
+          </p>
         </div>
       </div>
     </div>
 
     <!-- Image in Top-Right Corner -->
     <div
-      class="absolute top-4 right-4 flex items-center justify-center w-40 h-40 bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden"
+      v-if="imageUrl || generatingImage"
+      class="absolute top-4 right-4 flex items-center justify-center w-80 h-80 bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden"
     >
-      <Loading v-if="generatingImage" />
+      <Loading class="text-center" v-if="generatingImage" />
       <img
         v-if="imageUrl"
         :src="imageUrl"
@@ -121,6 +136,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref } from "vue";
@@ -158,6 +174,7 @@ const startRecording = async () => {
   recommendations.value = [];
   display.value = "";
   newSong.value = "";
+  imageUrl.value = "";
 
   try {
     // Stop any existing recording to prevent conflicts
@@ -273,6 +290,7 @@ const identifyAudio = async (audioBuffer) => {
       display.value = "Error identifying song";
       recommendations.value = ["No recommendations"];
       newSong.value = "Error generating new song";
+      imageUrl.value = "";
     } else {
       currentSong.value = result.metadata.music[0].title;
       artistName.value = result.metadata.music[0].artists[0].name;
@@ -291,6 +309,7 @@ const identifyAudio = async (audioBuffer) => {
     display.value = "Error identifying song";
     recommendations.value = ["No recommendations"];
     newSong.value = "Error generating new song";
+    imageUrl.value = "";
   }
 
   identifying.value = false;

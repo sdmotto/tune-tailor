@@ -7,7 +7,6 @@ export default defineEventHandler(async (event) => {
   const openAi = new OpenAiAdapter();
 
   const image = await openAi.generateImage(song, artist, album);
-  console.log(image);
 
   return { 'image': image };
 });
