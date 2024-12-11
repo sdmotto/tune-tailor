@@ -97,4 +97,23 @@ export default class OpenAiAdapter {
       throw new Error(`OpenAI DALL-E error: ${error.message}`);
     }
   }
+
+  async generateMusicPrompt(song, artist, lyrics) {
+    const prompt = `
+    Using the song "${song}" by ${artist} and similar lyrics ${lyrics} as inspiration,
+    give me a prompt that I can give to a music generator so I can generate the audio.
+    `;
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      });
+
+      return response.choices[0].message.content.trim();
+    } catch (error) {
+      throw new Error(`OpenAI GPT-4 error: ${error.message}`);
+    }
+  }
 }

@@ -9,7 +9,7 @@
       TuneTailor
     </h1>
 
-    <!-- Dynamic Button -->
+    <!-- Play Button -->
     <button
       class="w-28 h-28 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white text-4xl flex items-center justify-center shadow-xl hover:scale-105 transform transition-transform duration-300 focus:outline-none"
       @click="handleButtonClick"
@@ -18,27 +18,11 @@
       <span v-else>■</span>
     </button>
 
-    <!-- Debug Buttons -->
-    <div class="flex space-x-4 mt-6">
-      <button
-        class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-        @click="debugRecommendations"
-      >
-        Debug Recommendations
-      </button>
-      <button
-        class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xl rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-        @click="debugLyrics"
-      >
-        Debug Lyrics
-      </button>
-    </div>
-
-    <!-- Three Columns Section -->
+    <!-- Two Rows of Three Cards Section -->
     <div
-      class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl auto-rows-auto"
+      class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl auto-rows-min"
     >
-      <!-- Currently Playing Column -->
+      <!-- First Row -->
       <div
         class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
       >
@@ -51,7 +35,6 @@
         </div>
       </div>
 
-      <!-- Recommendations Column -->
       <div
         class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
       >
@@ -80,60 +63,80 @@
         </div>
       </div>
 
-      <!-- New Song Column -->
-      <div class="flex flex-col space-y-4">
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">New Lyrics:</span>
         <div
-          class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md"
+          :class="{ 'h-14': !newSong }"
+          class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 leading-relaxed"
         >
-          <span class="text-xl font-bold text-gray-700">New Song:</span>
-          <div
-            :class="{ 'h-14': !newSong }"
-            class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 leading-relaxed"
-          >
-            <div v-if="!generatingSong" class="whitespace-pre-wrap text-center">
-              <div>
-                {{ newSong }}
-              </div>
-              <button
-                v-if="newSong && newSong !== 'Error generating new song'"
-                class="px-6 py-3 mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
-              >
-                Generate Song
-              </button>
+          <div v-if="!generatingLyrics" class="whitespace-pre-wrap text-center">
+            <div style="max-height: 342px; overflow-y: auto;">
+              {{ newSong }}
             </div>
-            <div v-else class="flex items-center justify-center">
-              <Loading />
-            </div>
+            <button
+              v-if="newSong && !generatingMusic"
+              @click="generateSong()"
+              class="px-6 py-3 mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none"
+            >
+              Generate Song
+            </button>
+            <Loading class="mt-4" v-if="generatingMusic" />
+          </div>
+          <div v-else class="flex items-center justify-center">
+            <Loading />
           </div>
         </div>
+      </div>
 
-        <!-- Message Card -->
+      <!-- Second Row -->
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">Image:</span>
         <div
-          class="p-4 bg-white border border-gray-300 rounded-lg shadow-md"
+          :class="{'h-14' : !imageUrl}"
+          class="p-4 w-full bg-gray-50 rounded-md shadow-inner text-gray-800 text-center"
         >
-          <h2 class="text-lg font-bold text-gray-800 mb-2">
-            Need a Full Composition?
-          </h2>
-          <p class="text-gray-600">
-            For a full composition with lyrics, paste the new song into <strong>Suno</strong>.
-          </p>
+          <Loading class="text-center" v-if="generatingImage" />
+          <img
+            v-if="imageUrl"
+            :src="imageUrl"
+            class="w-full h-full object-cover"
+            alt="Generated Image"
+          />
         </div>
       </div>
-    </div>
 
-    <!-- Image in Top-Right Corner -->
-    <div
-      v-if="imageUrl || generatingImage"
-      class="absolute top-4 right-4 flex items-center justify-center w-80 h-80 bg-gray-100 border border-gray-300 rounded-lg shadow-md overflow-hidden"
-    >
-      <Loading class="text-center" v-if="generatingImage" />
-      <img
-        v-if="imageUrl"
-        :src="imageUrl"
-        class="w-full h-full object-cover"
-        alt="Generated Image"
-      />
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">Audio:</span>
+        <div class="w-full h-14">
+          <audio
+            ref="audioPlayer"
+            class="w-full"
+            controls
+            v-if="musicData"
+          >
+            <source :src="musicData" type="audio/mpeg" />
+            Your browser does not support the audio element.
+          </audio>
+          <loading v-if="generatingMusic" />
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col items-center space-y-4 p-6 bg-white rounded-lg shadow-md self-start"
+      >
+        <span class="text-xl font-bold text-gray-700">Attention</span>
+        <p class="text-gray-600 h-14">
+          For a full composition with lyrics, paste the new song into <strong>Suno</strong>.
+        </p>
+      </div>
     </div>
+    <div class="mt-5" />
   </div>
 </template>
 
@@ -156,11 +159,16 @@ const display = ref("");
 const recommending = ref(false);
 const recommendations = ref([]);
 
-const generatingSong = ref(false);
+const generatingLyrics = ref(false);
 const newSong = ref("");
 
 const generatingImage = ref(false);
 const imageUrl = ref("");
+
+const generatingMusic = ref(false);
+const audioPlayer = ref(null);
+const musicData = ref("");
+const binary = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -171,10 +179,7 @@ const handleButtonClick = async () => {
 };
 
 const startRecording = async () => {
-  recommendations.value = [];
-  display.value = "";
-  newSong.value = "";
-  imageUrl.value = "";
+  resetRefs();
 
   try {
     // Stop any existing recording to prevent conflicts
@@ -227,6 +232,55 @@ const stopRecording = () => {
   }
 };
 
+const identifyAudio = async (audioBuffer) => {
+  identifying.value = true;
+  try {
+    const uint8Array = new Uint8Array(audioBuffer);
+    let binaryString = "";
+    const chunkSize = 65536;
+
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      binaryString += String.fromCharCode.apply(
+        null,
+        uint8Array.slice(i, i + chunkSize),
+      );
+    }
+
+    const audioBase64 = btoa(binaryString);
+
+    const response = await fetch("/api/identify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ audioBuffer: audioBase64 }),
+    });
+
+    const result = await response.json();
+    console.log("ACRCloud result:", result);
+
+    if (result.status.code !== 0) {
+      errorRefs();
+    } else {
+      currentSong.value = result.metadata.music[0].title;
+      artistName.value = result.metadata.music[0].artists[0].name;
+      genre.value = result.metadata.music[0].genres[0].name;
+      albumName.value = result.metadata.music[0].album.name;
+
+      display.value = `"${currentSong.value}" by ${artistName.value}`;
+
+      getRecommendations();
+      generateLyrics();
+      generateImage();
+    }
+  } catch (e) {
+    console.error("Error identifying audio:", e);
+    errorRefs();
+  }
+
+  identifying.value = false;
+};
+
 const getRecommendations = async () => {
   recommending.value = true;
   recommendations.value = [];
@@ -259,64 +313,8 @@ const getRecommendations = async () => {
   recommending.value = false;
 };
 
-const identifyAudio = async (audioBuffer) => {
-  identifying.value = true;
-  try {
-    const uint8Array = new Uint8Array(audioBuffer);
-    let binaryString = "";
-    const chunkSize = 65536; // 64 KB chunks
-
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      binaryString += String.fromCharCode.apply(
-        null,
-        uint8Array.slice(i, i + chunkSize),
-      );
-    }
-
-    const audioBase64 = btoa(binaryString);
-
-    const response = await fetch("/api/identify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ audioBuffer: audioBase64 }),
-    });
-
-    const result = await response.json();
-    console.log("ACRCloud result:", result);
-
-    if (result.status.code !== 0) {
-      display.value = "Error identifying song";
-      recommendations.value = ["No recommendations"];
-      newSong.value = "Error generating new song";
-      imageUrl.value = "";
-    } else {
-      currentSong.value = result.metadata.music[0].title;
-      artistName.value = result.metadata.music[0].artists[0].name;
-      genre.value = result.metadata.music[0].genres[0].name;
-      albumName.value = result.metadata.music[0].album.name;
-
-      display.value = `"${currentSong.value}" by ${artistName.value}`;
-      identifying.value = false;
-
-      getRecommendations();
-      generateLyrics();
-      generateImage();
-    }
-  } catch (error) {
-    console.error("Error identifying audio:", error);
-    display.value = "Error identifying song";
-    recommendations.value = ["No recommendations"];
-    newSong.value = "Error generating new song";
-    imageUrl.value = "";
-  }
-
-  identifying.value = false;
-};
-
 const generateLyrics = async () => {
-  generatingSong.value = true;
+  generatingLyrics.value = true;
   try {
     const response = await fetch("/api/generate-lyrics", {
       method: "POST",
@@ -334,10 +332,10 @@ const generateLyrics = async () => {
     console.log("Lyrics result: ", result);
     newSong.value = result.song;
   } catch (e) {
-    newSong.value = "Error generating lyrics";
+    console.error("Error generating lyrics:", e);
   }
 
-  generatingSong.value = false;
+  generatingLyrics.value = false;
 };
 
 const generateImage = async () => {
@@ -361,28 +359,68 @@ const generateImage = async () => {
 
     console.log("Image result: ", result);
   } catch (e) {
-    newSong.value = "Error generating image";
+    console.error("Error generating image:", e);
   }
 };
 
-// Debug functions
-const debugRecommendations = () => {
-  currentSong.value = "good 4 u";
-  artistName.value = "Olivia Rodrigo";
-  albumName.value = "SOUR";
-  genre.value = "";
-  display.value = `"${currentSong.value}" by ${artistName.value}`;
+const generateSong = async () => {
+  generatingMusic.value = true;
+  musicData.value = "";
+  try {
+    const response = await fetch("/api/generate-song", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        songName: newSong.value,
+        artist: artistName,
+        lyrics: newSong.value
+      }),
+    });
 
-  getRecommendations();
-};
+    const result = await response.json();
 
-const debugLyrics = () => {
-  currentSong.value = "good 4 u";
-  artistName.value = "Olivia Rodrigo";
-  display.value = `"${currentSong.value}" by ${artistName.value}`;
+    // Decode Base64 string and create Blob
+    const binaryString = atob(result.song); // Decode Base64
+    const binaryData = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      binaryData[i] = binaryString.charCodeAt(i);
+    }
 
-  generateLyrics();
-};
+    const audioBlob = new Blob([binaryData], { type: "audio/mpeg" });
+    musicData.value = URL.createObjectURL(audioBlob);
+
+    if (audioPlayer.value) {
+      audioPlayer.value.src = musicData.value;
+      audioPlayer.value.load();
+    }
+
+    console.log("Song result: ", result);
+  } catch (e) {
+    console.error("Error generating song:", e);
+  }
+
+  generatingMusic.value = false;
+}
+
+//helpers
+const resetRefs = () => {
+  recommendations.value = [];
+  display.value = "";
+  newSong.value = "";
+  imageUrl.value = "";
+  musicData.value = "";
+}
+
+const errorRefs = () => {
+  display.value = "Error identifying song";
+  recommendations.value = [];
+  newSong.value = "";
+  imageUrl.value = "";
+  musicData.value = null;
+}
+
 </script>
 
 <style></style>
