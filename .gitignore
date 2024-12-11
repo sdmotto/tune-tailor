@@ -22,4 +22,6 @@ logs
 .env.*
 !.env.example
 
+.env
+
 music_gen/
