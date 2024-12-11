@@ -142,7 +142,7 @@
 
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const mediaRecorder = ref(null);
 const mediaStream = ref(null);
@@ -168,7 +168,6 @@ const imageUrl = ref("");
 const generatingMusic = ref(false);
 const audioPlayer = ref(null);
 const musicData = ref("");
-const binary = ref("");
 
 const handleButtonClick = async () => {
   if (!isRecording.value) {
@@ -219,13 +218,24 @@ const startRecording = async () => {
 
     mediaRecorder.value.start();
     console.log("Recording started...");
+  
+    setTimeout(() => {
+      isRecording.value = false;
+    }, 5000);
+
   } catch (error) {
     console.error("Error accessing microphone:", error);
   }
 };
 
+watch(isRecording, newValue => {
+  if (!newValue) {
+    stopRecording();
+  }
+})
+
 const stopRecording = () => {
-  if (mediaRecorder.value && isRecording.value) {
+  if (mediaRecorder.value) {
     isRecording.value = false;
     mediaRecorder.value.stop();
     console.log("Recording stopped.");
